@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"hash"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -49,7 +50,7 @@ type JWT struct {
 // Returns:
 // - string: The generated JWT string in the format "header.payload.signature".
 // - error: An error if any of the processing steps fail.
-func ProcessJWT(jwt *JWT) (string, error) {
+func (jwt *JWT) ProcessJWT() (string, error) {
 	jwt.Payload.Iat = time.Now().Unix()
 	header, err := processJWTHeader(&jwt.Header)
 	if err != nil {
@@ -71,9 +72,9 @@ func ProcessJWT(jwt *JWT) (string, error) {
 
 func processHash(header string, payload string, alg string) (string, error) {
 	secretKey := os.Getenv("JWT_SECRET_KEY")
-	println(secretKey)
 	if secretKey == "" {
 		os.Setenv("JWT_SECRET_KEY", generateSecretKey())
+		secretKey = os.Getenv("JWT_SECRET_KEY")
 	}
 	data := header + "." + payload
 	key := []byte(secretKey)
@@ -101,6 +102,39 @@ func generateSecretKey() string {
 	h.Write([]byte(time.Now().String() + "alcortes"))
 	secretKey := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	return secretKey
+}
+
+func ValidateJWT(jwtString string) bool {
+	jwtParts := strings.Split(jwtString, ".")
+	if len(jwtParts) != 3 {
+		return false
+	}
+	header, err := decodeJWTHeader(jwtParts[0])
+	if err != nil {
+		return false
+	}
+	signature, err := processHash(jwtParts[0], jwtParts[1], header.Alg)
+	if err != nil {
+		return false
+	}
+	if signature != jwtParts[2] {
+		return false
+	}
+	return true
+}
+
+func PrintJWTContent(jwtString string) {
+	jwtParts := strings.Split(jwtString, ".")
+	header, err := decodeJWTHeader(jwtParts[0])
+	if err != nil {
+		return
+	}
+	payload, err := decodeJWTPayload(jwtParts[1])
+	if err != nil {
+		return
+	}
+	println(header.ToString())
+	println(payload.ToString())
 }
 
 func (jwt *JWT) ToString() string {
