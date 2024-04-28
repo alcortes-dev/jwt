@@ -28,3 +28,12 @@ func processJWTHeader(jwtHeader *JWTHeader) (string, error) {
 	base64Header := base64.RawURLEncoding.EncodeToString(headerJson)
 	return base64Header, nil
 }
+
+func (jwtHeader *JWTHeader) ToString() string {
+	headerJson, err := json.Marshal(jwtHeader)
+	if err != nil {
+		return ""
+	}
+	return string(headerJson)
+
+}

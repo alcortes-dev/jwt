@@ -50,6 +50,7 @@ type JWT struct {
 // - string: The generated JWT string in the format "header.payload.signature".
 // - error: An error if any of the processing steps fail.
 func ProcessJWT(jwt *JWT) (string, error) {
+	jwt.Payload.Iat = time.Now().Unix()
 	header, err := processJWTHeader(&jwt.Header)
 	if err != nil {
 		return "", err
@@ -100,4 +101,9 @@ func generateSecretKey() string {
 	h.Write([]byte(time.Now().String() + "alcortes"))
 	secretKey := base64.StdEncoding.EncodeToString(h.Sum(nil))
 	return secretKey
+}
+
+func (jwt *JWT) ToString() string {
+	jwtString := "{" + jwt.Header.ToString() + "," + jwt.Payload.ToString() + "}"
+	return jwtString
 }

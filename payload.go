@@ -46,3 +46,11 @@ func processJWTPayload(jwtPayload *JWTPayload) (string, error) {
 	base64Payload := base64.RawURLEncoding.EncodeToString(payloadJson)
 	return base64Payload, nil
 }
+
+func (jwtPayload *JWTPayload) ToString() string {
+	payloadJson, err := json.Marshal(jwtPayload)
+	if err != nil {
+		return ""
+	}
+	return string(payloadJson)
+}
