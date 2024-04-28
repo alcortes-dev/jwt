@@ -29,6 +29,19 @@ func processJWTHeader(jwtHeader *JWTHeader) (string, error) {
 	return base64Header, nil
 }
 
+func decodeJWTHeader(base64Header string) (*JWTHeader, error) {
+	headerJson, err := base64.RawURLEncoding.DecodeString(base64Header)
+	if err != nil {
+		return nil, err
+	}
+	var jwtHeader JWTHeader
+	err = json.Unmarshal(headerJson, &jwtHeader)
+	if err != nil {
+		return nil, err
+	}
+	return &jwtHeader, nil
+}
+
 func (jwtHeader *JWTHeader) ToString() string {
 	headerJson, err := json.Marshal(jwtHeader)
 	if err != nil {
