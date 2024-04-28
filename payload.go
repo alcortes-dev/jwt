@@ -47,6 +47,19 @@ func processJWTPayload(jwtPayload *JWTPayload) (string, error) {
 	return base64Payload, nil
 }
 
+func decodeJWTPayload(base64Payload string) (*JWTPayload, error) {
+	payloadJson, err := base64.RawURLEncoding.DecodeString(base64Payload)
+	if err != nil {
+		return nil, err
+	}
+	var jwtPayload JWTPayload
+	err = json.Unmarshal(payloadJson, &jwtPayload)
+	if err != nil {
+		return nil, err
+	}
+	return &jwtPayload, nil
+}
+
 func (jwtPayload *JWTPayload) ToString() string {
 	payloadJson, err := json.Marshal(jwtPayload)
 	if err != nil {
