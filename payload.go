@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
+	"time"
 )
 
 // JWTPayload represents the payload of a JSON Web Token.
@@ -35,19 +36,28 @@ type JWTPayload struct {
 	Nbf  int64  `json:"nbf,omitempty"`
 	Iat  int64  `json:"iat,omitempty"`
 	Aud  string `json:"aud,omitempty"`
+	Data string `json:"data,omitempty"`
 }
 
-func processJWTPayload(jwtPayload *JWTPayload) (string, error) {
+func NewJWTPayload() *JWTPayload {
+	lifeTime := time.Hour * 2
+	return &JWTPayload{
+		Nbf: time.Now().Unix(),
+		Iat: time.Now().Unix(),
+		Exp: time.Now().Add(lifeTime).Unix(),
+	}
+}
+
+func (jwtPayload *JWTPayload) Marshal() (string, error) {
 	payloadJson, err := json.Marshal(jwtPayload)
 	if err != nil {
 		return "", err
 	}
-	// base64Payload := make([]byte, base64.URLEncoding.EncodedLen(len(payloadJson)))
 	base64Payload := base64.RawURLEncoding.EncodeToString(payloadJson)
 	return base64Payload, nil
 }
 
-func decodeJWTPayload(base64Payload string) (*JWTPayload, error) {
+func DecodeJWTPayload(base64Payload string) (*JWTPayload, error) {
 	payloadJson, err := base64.RawURLEncoding.DecodeString(base64Payload)
 	if err != nil {
 		return nil, err

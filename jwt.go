@@ -38,8 +38,15 @@ const (
 // type of the token. The `JWTPayload` contains the claims that are
 // being transmitted.
 type JWT struct {
-	Header  JWTHeader  `json:"header"`
-	Payload JWTPayload `json:"payload"`
+	Header  *JWTHeader  `json:"header"`
+	Payload *JWTPayload `json:"payload"`
+}
+
+func NewJWT(algorithm string) *JWT {
+	return &JWT{
+		Header:  NewJWTHeader(algorithm),
+		Payload: NewJWTPayload(),
+	}
 }
 
 // ProcessJWT generates a JSON Web Token (JWT) string by processing the header and payload of the given JWT struct.
@@ -50,13 +57,13 @@ type JWT struct {
 // Returns:
 // - string: The generated JWT string in the format "header.payload.signature".
 // - error: An error if any of the processing steps fail.
-func (jwt *JWT) ProcessJWT() (string, error) {
+func (jwt *JWT) Marshal() (string, error) {
 	jwt.Payload.Iat = time.Now().Unix()
-	header, err := processJWTHeader(&jwt.Header)
+	header, err := jwt.Header.Marshal()
 	if err != nil {
 		return "", err
 	}
-	payload, err := processJWTPayload(&jwt.Payload)
+	payload, err := jwt.Payload.Marshal()
 	if err != nil {
 		return "", err
 	}
@@ -109,7 +116,7 @@ func ValidateJWT(jwtString string) bool {
 	if len(jwtParts) != 3 {
 		return false
 	}
-	header, err := decodeJWTHeader(jwtParts[0])
+	header, err := DecodeJWTHeader(jwtParts[0])
 	if err != nil {
 		return false
 	}
@@ -125,11 +132,11 @@ func ValidateJWT(jwtString string) bool {
 
 func PrintJWTContent(jwtString string) {
 	jwtParts := strings.Split(jwtString, ".")
-	header, err := decodeJWTHeader(jwtParts[0])
+	header, err := DecodeJWTHeader(jwtParts[0])
 	if err != nil {
 		return
 	}
-	payload, err := decodeJWTPayload(jwtParts[1])
+	payload, err := DecodeJWTPayload(jwtParts[1])
 	if err != nil {
 		return
 	}

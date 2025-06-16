@@ -3,6 +3,7 @@ package jwt
 import (
 	"encoding/base64"
 	"encoding/json"
+	"strings"
 )
 
 // JWTHeader is a struct that represents the header of a JSON Web Token.
@@ -20,7 +21,19 @@ type JWTHeader struct {
 	Typ string `json:"typ"` // Required. Possible value: JWT.
 }
 
-func processJWTHeader(jwtHeader *JWTHeader) (string, error) {
+func NewJWTHeader(alg string) *JWTHeader {
+	var localAlg string = HS256
+	algUpper := strings.ToUpper(alg)
+	if (algUpper == HS256) || (algUpper == HS384) || (algUpper == HS512) {
+		localAlg = algUpper
+	}
+	return &JWTHeader{
+		Alg: localAlg,
+		Typ: "JWT",
+	}
+}
+
+func (jwtHeader *JWTHeader) Marshal() (string, error) {
 	headerJson, err := json.Marshal(jwtHeader)
 	if err != nil {
 		return "", err
@@ -29,7 +42,7 @@ func processJWTHeader(jwtHeader *JWTHeader) (string, error) {
 	return base64Header, nil
 }
 
-func decodeJWTHeader(base64Header string) (*JWTHeader, error) {
+func DecodeJWTHeader(base64Header string) (*JWTHeader, error) {
 	headerJson, err := base64.RawURLEncoding.DecodeString(base64Header)
 	if err != nil {
 		return nil, err
